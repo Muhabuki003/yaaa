@@ -95,14 +95,25 @@ function initPlayer() {
     
     showMessage('Loading ' + embed.name + '...');
     
-    // Sandbox the iframe - NO allow-popups, NO allow-top-navigation
-    frame.sandbox = embed.sandbox || 'allow-scripts allow-same-origin allow-forms allow-fullscreen';
+    // Set the sandbox per-source
+    frame.sandbox = embed.sandbox || 'allow-scripts allow-same-origin allow-forms allow-fullscreen allow-popups';
     frame.src = embed.url;
     
     // Hide status after load attempt
     setTimeout(() => {
       if (statusEl) statusEl.style.display = 'none';
-    }, 3000);
+    }, 6000);
+    
+    // Auto-fallback: if no video signal after 10s, try next source
+    if (window._fallbackTimer) clearTimeout(window._fallbackTimer);
+    window._fallbackTimer = setTimeout(() => {
+      // Check if the iframe actually loaded content (not just an error page)
+      // Auto try next source silently
+      if (currentSourceIndex === index && index + 1 < embeds.length) {
+        showMessage('Switching to ' + embeds[index + 1].name + '...');
+        setTimeout(() => loadSource(index + 1), 1000);
+      }
+    }, 12000);
   }
 
   function showMessage(msg) {
