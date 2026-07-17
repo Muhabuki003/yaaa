@@ -2,20 +2,28 @@
 // Multiple clean embed sources with fallbacks
 
 const EMBED_SOURCES = [
-  // Primary: vidsrc.to (most reliable)
+  // Primary: vidsrc.net (confirmed working, no CF challenge)
   {
     name: 'vidsrc',
     url: (id, type) => type === 'TV' 
-      ? `https://vidsrc.to/embed/tv/${id}/1/1` 
-      : `https://vidsrc.to/embed/movie/${id}`,
+      ? `https://vidsrc.net/embed/tv/${id}/1/1` 
+      : `https://vidsrc.net/embed/movie/${id}`,
     sandbox: 'allow-scripts allow-same-origin allow-forms allow-fullscreen'
   },
-  // Fallback: embed.su
+  // Fallback: vidsrc.to (works in browser iframes)
   {
-    name: 'embed',
+    name: 'vidsrc.to',
     url: (id, type) => type === 'TV'
-      ? `https://embed.su/embed/tv/${id}/1/1`
-      : `https://embed.su/embed/movie/${id}`,
+      ? `https://vidsrc.to/embed/tv/${id}/1/1`
+      : `https://vidsrc.to/embed/movie/${id}`,
+    sandbox: 'allow-scripts allow-same-origin allow-forms allow-fullscreen allow-popups'
+  },
+  // Fallback 2: cinezone
+  {
+    name: 'cinezone',
+    url: (id, type) => type === 'TV'
+      ? `https://player.cinezone.cc/embed/tv/${id}/1/1`
+      : `https://player.cinezone.cc/embed/movie/${id}`,
     sandbox: 'allow-scripts allow-same-origin allow-forms allow-fullscreen'
   }
 ];
