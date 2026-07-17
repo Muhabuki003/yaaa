@@ -1,1171 +1,215 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>QuizLens — AI Exam Scanner</title>
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
-  :root {
-    --bg: #0d0f14;
-    --surface: #161920;
-    --surface2: #1e2330;
-    --border: #2a2f3d;
-    --accent: #3d8bff;
-    --accent-glow: rgba(61, 139, 255, 0.25);
-    --danger: #ff4d6d;
-    --success: #22c55e;
-    --text: #e8eaf2;
-    --muted: #6b7280;
-    --mono: 'JetBrains Mono', monospace;
-    --sans: 'Space Grotesk', sans-serif;
-  }
-
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    min-height: 100dvh;
-    display: flex;
-    flex-direction: column;
-    overflow-x: hidden;
-  }
-
-  /* Header */
-  header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-  }
-
-  .logo {
-    font-size: 17px;
-    font-weight: 700;
-    letter-spacing: -0.3px;
-  }
-  .logo span { color: var(--accent); }
-
-  .api-btn {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    font-family: var(--sans);
-    font-size: 12px;
-    padding: 6px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .api-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .api-btn.configured { color: var(--success); border-color: var(--success); }
-
-  /* Main layout */
-  main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-  }
-
-  /* Camera section */
-  .camera-section {
-    position: relative;
-    background: #000;
-    aspect-ratio: 9/14;
-    max-height: 50dvh;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  #video {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  .camera-overlay {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-  }
-
-  /* Corner brackets */
-  .corner {
-    position: absolute;
-    width: 28px;
-    height: 28px;
-    border-color: var(--accent);
-    border-style: solid;
-    opacity: 0.8;
-  }
-  .corner.tl { top: 16px; left: 16px; border-width: 2px 0 0 2px; }
-  .corner.tr { top: 16px; right: 16px; border-width: 2px 2px 0 0; }
-  .corner.bl { bottom: 16px; left: 16px; border-width: 0 0 2px 2px; }
-  .corner.br { bottom: 16px; right: 16px; border-width: 0 2px 2px 0; }
-
-  /* Scan line */
-  .scan-line {
-    position: absolute;
-    left: 16px; right: 16px;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    top: 20%;
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-  .scanning .scan-line {
-    opacity: 1;
-    animation: scan 1.8s ease-in-out infinite;
-  }
-  @keyframes scan {
-    0% { top: 15%; }
-    50% { top: 80%; }
-    100% { top: 15%; }
-  }
-
-  /* Timer badge */
-  .timer-badge {
-    position: absolute;
-    top: 14px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(8px);
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    font-family: var(--mono);
-    font-size: 22px;
-    font-weight: 500;
-    padding: 6px 18px;
-    border-radius: 100px;
-    display: none;
-  }
-  .timer-badge.visible { display: block; }
-
-  /* Status badge */
-  .status-badge {
-    position: absolute;
-    bottom: 14px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.75);
-    backdrop-filter: blur(6px);
-    font-size: 12px;
-    font-weight: 500;
-    padding: 5px 14px;
-    border-radius: 100px;
-    letter-spacing: 0.5px;
-    white-space: nowrap;
-    color: var(--muted);
-    border: 1px solid var(--border);
-  }
-
-  /* Zoom controls */
-  .zoom-controls {
-    position: absolute;
-    bottom: 14px;
-    right: 14px;
-    display: flex;
-    gap: 6px;
-    z-index: 10;
-  }
-
-  .zoom-btn {
-    background: rgba(0,0,0,0.65);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,0.15);
-    color: #fff;
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: 600;
-    padding: 5px 10px;
-    border-radius: 100px;
-    cursor: pointer;
-    transition: all 0.15s;
-    letter-spacing: 0.3px;
-  }
-  .zoom-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .zoom-btn.active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #fff;
-    box-shadow: 0 0 10px var(--accent-glow);
-  }
-
-  /* No camera placeholder */
-  .no-camera {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    color: var(--muted);
-    font-size: 14px;
-  }
-  .no-camera svg { opacity: 0.3; }
-
-  /* Controls */
-  .controls {
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 14px;
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .hint {
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: 0.3px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .hint-pill {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 2px 7px;
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--muted);
-  }
-
-  /* Record button */
-  .record-wrap {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .record-ring {
-    position: absolute;
-    width: 84px;
-    height: 84px;
-    border-radius: 50%;
-    border: 2px solid var(--accent);
-    opacity: 0.4;
-    transition: all 0.3s;
-  }
-
-  #recordBtn {
-    width: 68px;
-    height: 68px;
-    border-radius: 50%;
-    border: none;
-    background: var(--accent);
-    cursor: pointer;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    box-shadow: 0 0 24px var(--accent-glow);
-  }
-
-  #recordBtn:active { transform: scale(0.92); }
-  #recordBtn.recording {
-    background: var(--danger);
-    box-shadow: 0 0 28px rgba(255, 77, 109, 0.35);
-    animation: pulse-btn 1s ease-in-out infinite;
-  }
-  @keyframes pulse-btn {
-    0%, 100% { box-shadow: 0 0 20px rgba(255,77,109,0.3); }
-    50% { box-shadow: 0 0 40px rgba(255,77,109,0.6); }
-  }
-
-  .record-ring.recording {
-    border-color: var(--danger);
-    animation: ring-pulse 1s ease-in-out infinite;
-  }
-  @keyframes ring-pulse {
-    0%, 100% { transform: scale(1); opacity: 0.4; }
-    50% { transform: scale(1.15); opacity: 0.15; }
-  }
-
-  #recordBtn svg { transition: transform 0.2s; }
-
-  .record-label {
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-
-  /* Results section */
-  .results-section {
-    flex: 1;
-    padding: 20px;
-    overflow-y: auto;
-  }
-
-  .results-section h2 {
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .results-section h2::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: var(--border);
-  }
-
-  .empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    padding: 40px 20px;
-    color: var(--muted);
-    font-size: 13px;
-    text-align: center;
-  }
-  .empty-icon {
-    font-size: 32px;
-    opacity: 0.4;
-    margin-bottom: 4px;
-  }
-
-  /* Processing state */
-  .processing-state {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
-    padding: 30px 20px;
-  }
-  .processing-state.visible { display: flex; }
-
-  .spinner {
-    width: 36px;
-    height: 36px;
-    border: 3px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .processing-text {
-    color: var(--muted);
-    font-size: 13px;
-  }
-
-  /* Question cards */
-  .questions-list {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .question-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    overflow: hidden;
-    animation: slideUp 0.4s ease both;
-  }
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .question-header {
-    background: var(--surface2);
-    padding: 10px 16px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .q-number {
-    background: var(--accent);
-    color: #fff;
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: 500;
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .q-text {
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 1.4;
-    color: var(--text);
-  }
-
-  .choices-list {
-    padding: 12px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .choice-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 10px 12px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    font-size: 13px;
-    line-height: 1.4;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .choice-item:hover {
-    border-color: var(--accent);
-    background: rgba(61, 139, 255, 0.06);
-  }
-  .choice-item.selected {
-    border-color: var(--accent);
-    background: rgba(61, 139, 255, 0.12);
-  }
-
-  .choice-letter {
-    font-family: var(--mono);
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--accent);
-    background: var(--accent-glow);
-    width: 22px;
-    height: 22px;
-    border-radius: 5px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-
-  /* Error state */
-  .error-card {
-    background: rgba(255, 77, 109, 0.08);
-    border: 1px solid rgba(255, 77, 109, 0.3);
-    border-radius: 12px;
-    padding: 16px;
-    font-size: 13px;
-    color: var(--danger);
-    line-height: 1.5;
-  }
-
-  /* API Key Modal */
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.8);
-    backdrop-filter: blur(4px);
-    z-index: 100;
-    display: flex;
-    align-items: flex-end;
-    padding: 20px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s;
-  }
-  .modal-overlay.open {
-    opacity: 1;
-    pointer-events: all;
-  }
-
-  .modal {
-    width: 100%;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 24px;
-    transform: translateY(20px);
-    transition: transform 0.25s;
-  }
-  .modal-overlay.open .modal { transform: translateY(0); }
-
-  .modal h3 {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 6px;
-  }
-  .modal p {
-    font-size: 12px;
-    color: var(--muted);
-    margin-bottom: 18px;
-    line-height: 1.5;
-  }
-
-  .modal input {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 14px;
-    color: var(--text);
-    font-family: var(--mono);
-    font-size: 13px;
-    outline: none;
-    margin-bottom: 14px;
-    transition: border-color 0.2s;
-  }
-  .modal input:focus { border-color: var(--accent); }
-  .modal input::placeholder { color: var(--muted); }
-
-  .modal-actions {
-    display: flex;
-    gap: 10px;
-  }
-
-  .btn-primary {
-    flex: 1;
-    background: var(--accent);
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    padding: 12px;
-    font-family: var(--sans);
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.2s;
-  }
-  .btn-primary:hover { opacity: 0.85; }
-
-  .btn-secondary {
-    background: var(--surface2);
-    color: var(--muted);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 18px;
-    font-family: var(--sans);
-    font-size: 14px;
-    cursor: pointer;
-  }
-
-  /* Raw text toggle */
-  .raw-toggle {
-    margin-top: 16px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border);
-  }
-  .raw-toggle summary {
-    font-size: 11px;
-    color: var(--muted);
-    cursor: pointer;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    font-weight: 600;
-  }
-  .raw-content {
-    margin-top: 10px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px;
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--muted);
-    line-height: 1.6;
-    white-space: pre-wrap;
-    word-break: break-all;
-  }
-</style>
+  <meta charset="utf-8"/>
+  <title>babytime — Watch Movies &amp; TV Shows Free</title>
+  <meta name="title" content="babytime"/>
+  <meta name="description" content="Watch Free Movies and TV Shows Online — babytime"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="keywords" content="babytime, watch free movies, free movies online, movies streaming, tv shows, watch online free"/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍿</text></svg>"/>
+  <link rel="canonical" href="https://yaaa-8xs.pages.dev"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/style.css"/>
 </head>
 <body>
+  <!-- Skip to content -->
+  <a href="#main-content" class="skip-link">Skip to content</a>
 
-<header>
-  <div class="logo">Quiz<span>Lens</span></div>
-  <button class="api-btn" id="apiBtn" onclick="openModal()">⚙ Set API Key</button>
-</header>
+  <!-- Sidebar Navigation -->
+  <nav class="sidebar" aria-label="Main navigation">
+    <div class="sidebar-header">
+      <a href="/" class="logo">
+        <span class="logo-icon">🍿</span>
+        <span class="logo-text">babytime</span>
+      </a>
+    </div>
 
-<main>
-  <!-- Camera -->
-  <div class="camera-section" id="cameraSection">
-    <video id="video" autoplay playsinline muted></video>
-    <div class="camera-overlay scanning" id="cameraOverlay">
-      <div class="corner tl"></div>
-      <div class="corner tr"></div>
-      <div class="corner bl"></div>
-      <div class="corner br"></div>
-      <div class="scan-line"></div>
-      <div class="timer-badge" id="timerBadge">20</div>
-      <div class="status-badge" id="statusBadge">Point at your exam — tap record or press volume</div>
-      <div class="zoom-controls">
-        <button class="zoom-btn active" id="zoom05" onclick="setZoom(0.5)">0.5×</button>
-        <button class="zoom-btn" id="zoom1" onclick="setZoom(1)">1×</button>
-        <button class="zoom-btn" id="zoom2" onclick="setZoom(2)">2×</button>
+    <div class="sidebar-nav">
+      <a href="/" class="nav-item active" data-nav="home">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Home</span>
+      </a>
+      <a href="/movies" class="nav-item" data-nav="movies">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="17"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
+        <span>Movies</span>
+      </a>
+      <a href="/tv-shows" class="nav-item" data-nav="tv">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span>TV Shows</span>
+      </a>
+      <a href="/trending" class="nav-item" data-nav="trending">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        <span>Trending</span>
+      </a>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-section-label">Categories</div>
+    <div class="sidebar-nav">
+      <a href="/genre/action" class="nav-item"><span>🔥 Action</span></a>
+      <a href="/genre/comedy" class="nav-item"><span>😂 Comedy</span></a>
+      <a href="/genre/drama" class="nav-item"><span>🎭 Drama</span></a>
+      <a href="/genre/horror" class="nav-item"><span>👻 Horror</span></a>
+      <a href="/genre/sci-fi" class="nav-item"><span>🚀 Sci-Fi</span></a>
+    </div>
+
+    <div class="sidebar-footer">
+      <a href="/privacy" class="nav-item small">Privacy</a>
+      <a href="/terms" class="nav-item small">Terms</a>
+      <a href="/contact" class="nav-item small">Contact</a>
+    </div>
+  </nav>
+
+  <!-- Mobile Header -->
+  <header class="mobile-header">
+    <button class="menu-toggle" aria-label="Toggle menu" id="menuToggle">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <a href="/" class="logo mobile-logo">
+      <span class="logo-icon">🍿</span>
+      <span class="logo-text">babytime</span>
+    </a>
+    <button class="search-toggle" aria-label="Search" id="searchToggle">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+  </header>
+
+  <main id="main-content">
+    <!-- Hero / Featured Section -->
+    <section class="hero" aria-label="Featured content">
+      <div class="hero-backdrop" id="heroBackdrop"></div>
+      <div class="hero-gradient"></div>
+      <div class="hero-content">
+        <div class="hero-badge">Featured Movie</div>
+        <h1 class="hero-title" id="heroTitle">The Last Frontier</h1>
+        <div class="hero-meta">
+          <span class="hero-year" id="heroYear">2025</span>
+          <span class="hero-rating"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> <span id="heroRating">8.5</span></span>
+          <span class="hero-duration" id="heroDuration">2h 12m</span>
+          <span class="hero-quality">HD</span>
+        </div>
+        <p class="hero-description" id="heroDesc">In a world ravaged by climate collapse, one family must journey across the frozen wasteland to find the last habitable zone on Earth.</p>
+        <div class="hero-tags" id="heroTags">
+          <span>Action</span>
+          <span>Adventure</span>
+          <span>Drama</span>
+        </div>
+        <div class="hero-actions">
+          <button class="btn btn-primary play-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Watch Now
+          </button>
+          <button class="btn btn-secondary info-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            More Info
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search Bar -->
+    <div class="search-bar" id="searchBar">
+      <div class="search-container">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" placeholder="Search movies, TV shows..." id="searchInput" aria-label="Search movies and TV shows"/>
+        <button class="search-close" id="searchClose" aria-label="Close search">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
       </div>
     </div>
-    <div class="no-camera" id="noCameraMsg" style="display:none">
-      <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/>
-      </svg>
-      Tap record to start camera
-    </div>
-  </div>
 
-  <!-- Controls -->
-  <div class="controls">
-    <div class="hint">
-      <span class="hint-pill">VOL↑</span> or <span class="hint-pill">VOL↓</span> to trigger record
-    </div>
-    <div class="record-wrap">
-      <div class="record-ring" id="recordRing"></div>
-      <button id="recordBtn" onclick="toggleRecord()">
-        <svg id="recordIcon" width="26" height="26" fill="none" viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="8" fill="white"/>
-        </svg>
-      </button>
-    </div>
-    <span class="record-label" id="recordLabel">Record</span>
-  </div>
+    <!-- Content Sections -->
+    <div class="content-sections">
+      <!-- Trending Now -->
+      <section class="content-section" aria-label="Trending Now">
+        <div class="section-header">
+          <h2 class="section-title">Trending Now</h2>
+          <a href="/trending" class="section-link">View All</a>
+        </div>
+        <div class="movie-grid" id="trendingGrid">
+          <!-- Grid populated by JS -->
+        </div>
+      </section>
 
-  <!-- Results -->
-  <div class="results-section">
-    <h2>Results</h2>
+      <!-- Latest Movies -->
+      <section class="content-section" aria-label="Latest Movies">
+        <div class="section-header">
+          <h2 class="section-title">Latest Movies</h2>
+          <a href="/movies" class="section-link">View All</a>
+        </div>
+        <div class="movie-grid" id="moviesGrid">
+          <!-- Grid populated by JS -->
+        </div>
+      </section>
 
-    <div class="processing-state" id="processingState">
-      <div class="spinner"></div>
-      <div class="processing-text" id="processingText">Analyzing your exam...</div>
+      <!-- Popular TV Shows -->
+      <section class="content-section" aria-label="Popular TV Shows">
+        <div class="section-header">
+          <h2 class="section-title">Popular TV Shows</h2>
+          <a href="/tv-shows" class="section-link">View All</a>
+        </div>
+        <div class="movie-grid" id="tvGrid">
+          <!-- Grid populated by JS -->
+        </div>
+      </section>
+
+      <!-- Continue Watching -->
+      <section class="content-section" aria-label="Continue Watching">
+        <div class="section-header">
+          <h2 class="section-title">Continue Watching</h2>
+        </div>
+        <div class="movie-grid continue-grid" id="continueGrid">
+          <!-- Grid populated by JS -->
+        </div>
+      </section>
     </div>
 
-    <div id="resultsContent">
-      <div class="empty-state" id="emptyState">
-        <div class="empty-icon">🎯</div>
-        <div>Record your exam sheet</div>
-        <div style="font-size:12px;opacity:0.6">AI will extract and format all questions</div>
+    <!-- Footer -->
+    <footer class="site-footer" role="contentinfo">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <a href="/" class="logo">
+            <span class="logo-icon">🍿</span>
+            <span class="logo-text">babytime</span>
+          </a>
+          <p>Watch free movies and TV shows anytime, anywhere.</p>
+        </div>
+        <div class="footer-links">
+          <div class="footer-col">
+            <h4>Browse</h4>
+            <a href="/movies">Movies</a>
+            <a href="/tv-shows">TV Shows</a>
+            <a href="/trending">Trending</a>
+            <a href="/genre/horror">Horror</a>
+          </div>
+          <div class="footer-col">
+            <h4>Support</h4>
+            <a href="/faq">FAQ</a>
+            <a href="/contact">Contact</a>
+            <a href="/report">Report Issue</a>
+          </div>
+          <div class="footer-col">
+            <h4>Legal</h4>
+            <a href="/privacy">Privacy Policy</a>
+            <a href="/terms">Terms of Service</a>
+            <a href="/dmca">DMCA</a>
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
-</main>
-
-<!-- API Key Modal -->
-<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
-  <div class="modal">
-    <h3>DeepSeek API Key</h3>
-    <p>Your key is stored locally and never sent anywhere except DeepSeek's API.</p>
-    <input type="password" id="apiKeyInput" placeholder="sk-..." autocomplete="off">
-    <div class="modal-actions">
-      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
-      <button class="btn-primary" onclick="saveApiKey()">Save Key</button>
-    </div>
-  </div>
-</div>
-
-<script>
-// ─── State ────────────────────────────────────────────────
-let stream = null;
-let isRecording = false;
-let recordingTimer = null;
-let countdown = 20;
-let capturedFrames = [];
-let mediaRecorder = null;
-let currentZoom = 0.5;
-
-const video = document.getElementById('video');
-const recordBtn = document.getElementById('recordBtn');
-const recordRing = document.getElementById('recordRing');
-const recordLabel = document.getElementById('recordLabel');
-const recordIcon = document.getElementById('recordIcon');
-const timerBadge = document.getElementById('timerBadge');
-const statusBadge = document.getElementById('statusBadge');
-const cameraOverlay = document.getElementById('cameraOverlay');
-const processingState = document.getElementById('processingState');
-const processingText = document.getElementById('processingText');
-const resultsContent = document.getElementById('resultsContent');
-const emptyState = document.getElementById('emptyState');
-const noCameraMsg = document.getElementById('noCameraMsg');
-const apiBtn = document.getElementById('apiBtn');
-
-// ─── API Key ──────────────────────────────────────────────
-let apiKey = localStorage.getItem('deepseek_api_key') || '';
-if (apiKey) {
-  apiBtn.textContent = '✓ API Key Set';
-  apiBtn.classList.add('configured');
-}
-
-function openModal() {
-  document.getElementById('modalOverlay').classList.add('open');
-  document.getElementById('apiKeyInput').value = apiKey;
-  setTimeout(() => document.getElementById('apiKeyInput').focus(), 300);
-}
-function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('open');
-}
-function closeModalOutside(e) {
-  if (e.target === document.getElementById('modalOverlay')) closeModal();
-}
-function saveApiKey() {
-  const val = document.getElementById('apiKeyInput').value.trim();
-  if (!val) return;
-  apiKey = val;
-  localStorage.setItem('deepseek_api_key', apiKey);
-  apiBtn.textContent = '✓ API Key Set';
-  apiBtn.classList.add('configured');
-  closeModal();
-}
-
-// ─── Zoom ─────────────────────────────────────────────────
-async function setZoom(level) {
-  currentZoom = level;
-
-  // Update UI
-  ['05','1','2'].forEach(z => {
-    const el = document.getElementById(`zoom${z}`);
-    if (el) el.classList.remove('active');
-  });
-  const idMap = { 0.5: 'zoom05', 1: 'zoom1', 2: 'zoom2' };
-  document.getElementById(idMap[level])?.classList.add('active');
-
-  if (!stream) return;
-
-  const videoTrack = stream.getVideoTracks()[0];
-  if (!videoTrack) return;
-
-  try {
-    const capabilities = videoTrack.getCapabilities();
-
-    // Native zoom via constraints (Chrome Android supports this)
-    if (capabilities.zoom) {
-      const minZoom = capabilities.zoom.min ?? 1;
-      const maxZoom = capabilities.zoom.max ?? 4;
-      const targetZoom = level === 0.5
-        ? minZoom  // 0.5x = minimum zoom (widest angle)
-        : Math.min(level, maxZoom);
-      await videoTrack.applyConstraints({ advanced: [{ zoom: targetZoom }] });
-      return;
-    }
-
-    // Fallback: restart camera with different facingMode constraint for 0.5x
-    // On iPhones, the ultra-wide is triggered by requesting a very wide FOV
-    if (level === 0.5) {
-      await restartCamera({ facingMode: { ideal: 'environment' }, zoom: 0.5 });
-    } else {
-      await restartCamera({ facingMode: { ideal: 'environment' } });
-      // Apply CSS scale simulation for non-native zoom
-      if (level === 2) {
-        video.style.transform = 'scale(2)';
-        video.style.transformOrigin = 'center center';
-      } else {
-        video.style.transform = 'scale(1)';
-      }
-    }
-  } catch (err) {
-    // Silently fallback to CSS simulation
-    if (level === 0.5) {
-      video.style.transform = 'scale(0.85)';
-      video.style.transformOrigin = 'center center';
-    } else if (level === 2) {
-      video.style.transform = 'scale(2)';
-      video.style.transformOrigin = 'center center';
-    } else {
-      video.style.transform = 'scale(1)';
-    }
-  }
-}
-
-async function restartCamera(extraConstraints = {}) {
-  if (stream) {
-    stream.getTracks().forEach(t => t.stop());
-    stream = null;
-  }
-  await startCamera(extraConstraints);
-}
-
-// ─── Zoom ─────────────────────────────────────────────────
-async function setZoom(level) {
-  currentZoom = level;
-
-  // Update button UI
-  document.querySelectorAll('.zoom-btn').forEach(b => b.classList.remove('active'));
-  const idMap = { 0.5: 'zoom05', 1: 'zoom1', 2: 'zoom2' };
-  const btn = document.getElementById(idMap[level]);
-  if (btn) btn.classList.add('active');
-
-  applyZoomToTrack(level);
-}
-
-async function applyZoomToTrack(level) {
-  // CSS simulation as universal fallback
-  const scaleMap = { 0.5: 0.75, 1: 1, 2: 1.6 };
-  video.style.transform = `scale(${scaleMap[level] || 1})`;
-  video.style.transformOrigin = 'center center';
-
-  if (!stream) return;
-  const videoTrack = stream.getVideoTracks()[0];
-  if (!videoTrack) return;
-
-  try {
-    const capabilities = videoTrack.getCapabilities();
-    if (capabilities && capabilities.zoom) {
-      const minZ = capabilities.zoom.min ?? 1;
-      const maxZ = capabilities.zoom.max ?? 4;
-      // 0.5x = widest (min), 1x = normal, 2x = 2× optical
-      const nativeZoom = level === 0.5 ? minZ : Math.min(level, maxZ);
-      await videoTrack.applyConstraints({ advanced: [{ zoom: nativeZoom }] });
-      // If native zoom worked, reset CSS scale
-      video.style.transform = 'scale(1)';
-    }
-  } catch (e) {
-    // CSS simulation already applied above — fine
-  }
-}
-
-// ─── Camera ───────────────────────────────────────────────
-async function startCamera() {
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: {
-        facingMode: { ideal: 'environment' },
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
-      },
-      audio: false
-    });
-    video.srcObject = stream;
-    video.style.display = 'block';
-    noCameraMsg.style.display = 'none';
-    video.onloadedmetadata = () => { applyZoomToTrack(currentZoom); };
-  } catch (err) {
-    console.error('Camera error:', err);
-    video.style.display = 'none';
-    noCameraMsg.style.display = 'flex';
-    statusBadge.textContent = 'Camera access denied';
-  }
-}
-
-// Start camera on load
-startCamera();
-
-// ─── Volume Button Support ────────────────────────────────
-// Intercept volume keys via keydown (works on many Android browsers)
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'AudioVolumeUp' || e.key === 'AudioVolumeDown' ||
-      e.key === 'VolumeUp' || e.key === 'VolumeDown' ||
-      e.keyCode === 175 || e.keyCode === 174) {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleRecord();
-  }
-});
-
-// Also listen for media session keys
-if ('mediaSession' in navigator) {
-  navigator.mediaSession.setActionHandler('previoustrack', () => toggleRecord());
-  navigator.mediaSession.setActionHandler('nexttrack', () => toggleRecord());
-}
-
-// ─── Recording ────────────────────────────────────────────
-async function toggleRecord() {
-  if (!isRecording) {
-    await startRecording();
-  } else {
-    stopRecording();
-  }
-}
-
-async function startRecording() {
-  if (!apiKey) {
-    openModal();
-    return;
-  }
-  if (!stream) await startCamera();
-  if (!stream) return;
-
-  isRecording = true;
-  capturedFrames = [];
-  countdown = 20;
-
-  // UI: recording state
-  recordBtn.classList.add('recording');
-  recordRing.classList.add('recording');
-  recordLabel.textContent = 'Recording...';
-  timerBadge.textContent = '20';
-  timerBadge.classList.add('visible');
-  statusBadge.textContent = '🔴 Recording — keep exam in frame';
-  cameraOverlay.classList.add('scanning');
-
-  // Change icon to stop square
-  recordIcon.innerHTML = `<rect x="7" y="7" width="10" height="10" rx="2" fill="white"/>`;
-
-  // Capture a frame every 2 seconds
-  const captureInterval = setInterval(() => {
-    captureFrame();
-  }, 2000);
-
-  // Countdown
-  recordingTimer = setInterval(() => {
-    countdown--;
-    timerBadge.textContent = countdown;
-    if (countdown <= 0) {
-      clearInterval(captureInterval);
-      clearInterval(recordingTimer);
-      stopRecording(true);
-    }
-  }, 1000);
-
-  // Store interval ref
-  recordBtn._captureInterval = captureInterval;
-}
-
-function captureFrame() {
-  if (!stream || !video.videoWidth) return;
-  const canvas = document.createElement('canvas');
-  canvas.width = Math.min(video.videoWidth, 640);
-  canvas.height = Math.round(canvas.width * video.videoHeight / video.videoWidth);
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
-  capturedFrames.push(dataUrl.split(',')[1]); // base64 only
-}
-
-function stopRecording(auto = false) {
-  isRecording = false;
-  clearInterval(recordingTimer);
-  if (recordBtn._captureInterval) clearInterval(recordBtn._captureInterval);
-
-  // Capture one final frame
-  captureFrame();
-
-  // UI: reset
-  recordBtn.classList.remove('recording');
-  recordRing.classList.remove('recording');
-  recordLabel.textContent = 'Record';
-  timerBadge.classList.remove('visible');
-  recordIcon.innerHTML = `<circle cx="12" cy="12" r="8" fill="white"/>`;
-
-  if (capturedFrames.length === 0) {
-    statusBadge.textContent = 'No frames captured — try again';
-    return;
-  }
-
-  statusBadge.textContent = `Captured ${capturedFrames.length} frames — analyzing...`;
-  analyzeExam();
-}
-
-// ─── DeepSeek Analysis ────────────────────────────────────
-async function analyzeExam() {
-  // Show processing
-  emptyState && (emptyState.style.display = 'none');
-  document.querySelectorAll('.question-card, .error-card, .raw-toggle').forEach(el => el.remove());
-  processingState.classList.add('visible');
-  processingText.textContent = 'Sending to DeepSeek AI...';
-
-  // Use the best frame (last one, usually most stable)
-  const bestFrame = capturedFrames[capturedFrames.length - 1];
-
-  // Build messages with vision
-  const messages = [
-    {
-      role: 'user',
-      content: [
-        {
-          type: 'image_url',
-          image_url: {
-            url: `data:image/jpeg;base64,${bestFrame}`
-          }
-        },
-        {
-          type: 'text',
-          text: `You are an exam question extractor. Look at this image carefully.
-
-Extract ALL visible multiple choice questions and format them EXACTLY like this:
-
-QUESTION 1: [full question text]
-A. [choice]
-B. [choice]
-C. [choice]
-D. [choice]
-
-QUESTION 2: [full question text]
-A. [choice]
-B. [choice]
-C. [choice]
-D. [choice]
-
-Rules:
-- Include every question you can read, even partially
-- If an answer is not visible, write "Not visible"
-- Keep exact original wording
-- If there are no multiple choice questions but there is text, extract the questions in the same format with options A-D if applicable
-- If the image is too blurry or doesn't contain exam content, say: NO_QUESTIONS_FOUND
-
-Start extracting now:`
-        }
-      ]
-    }
-  ];
-
-  try {
-    processingText.textContent = 'AI is reading your exam...';
-
-    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        max_tokens: 2000,
-        messages: messages
-      })
-    });
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error(err.error?.message || `API error ${response.status}`);
-    }
-
-    const data = await response.json();
-    const rawText = data.choices?.[0]?.message?.content || '';
-
-    processingState.classList.remove('visible');
-    statusBadge.textContent = 'Analysis complete ✓';
-
-    if (rawText.includes('NO_QUESTIONS_FOUND') || rawText.trim().length < 10) {
-      showError('No exam questions detected. Make sure the exam sheet is clearly visible and well-lit, then try again.');
-      return;
-    }
-
-    renderQuestions(rawText);
-
-  } catch (err) {
-    processingState.classList.remove('visible');
-    statusBadge.textContent = 'Analysis failed';
-    showError(`Error: ${err.message}`);
-  }
-}
-
-// ─── Parse & Render Questions ─────────────────────────────
-function renderQuestions(rawText) {
-  const container = resultsContent;
-
-  // Parse questions
-  const questions = parseQuestions(rawText);
-
-  if (questions.length === 0) {
-    // Fallback: show raw text nicely
-    showRawFallback(rawText);
-    return;
-  }
-
-  const list = document.createElement('div');
-  list.className = 'questions-list';
-
-  questions.forEach((q, i) => {
-    const card = document.createElement('div');
-    card.className = 'question-card';
-    card.style.animationDelay = `${i * 0.07}s`;
-
-    const header = document.createElement('div');
-    header.className = 'question-header';
-    header.innerHTML = `
-      <div class="q-number">${i + 1}</div>
-      <div class="q-text">${escHtml(q.question)}</div>
-    `;
-
-    const choicesList = document.createElement('div');
-    choicesList.className = 'choices-list';
-
-    q.choices.forEach(choice => {
-      const item = document.createElement('div');
-      item.className = 'choice-item';
-      item.innerHTML = `
-        <div class="choice-letter">${escHtml(choice.letter)}</div>
-        <div>${escHtml(choice.text)}</div>
-      `;
-      item.addEventListener('click', () => {
-        choicesList.querySelectorAll('.choice-item').forEach(c => c.classList.remove('selected'));
-        item.classList.add('selected');
-      });
-      choicesList.appendChild(item);
-    });
-
-    card.appendChild(header);
-    card.appendChild(choicesList);
-    list.appendChild(card);
-  });
-
-  container.innerHTML = '';
-  container.appendChild(list);
-
-  // Add raw text toggle
-  const rawToggle = document.createElement('details');
-  rawToggle.className = 'raw-toggle';
-  rawToggle.innerHTML = `
-    <summary>Show raw AI output</summary>
-    <div class="raw-content">${escHtml(rawText)}</div>
-  `;
-  container.appendChild(rawToggle);
-}
-
-function parseQuestions(text) {
-  const questions = [];
-  // Split by QUESTION N: pattern
-  const parts = text.split(/QUESTION\s+\d+\s*:/i).filter(p => p.trim());
-
-  parts.forEach(part => {
-    const lines = part.trim().split('\n').map(l => l.trim()).filter(Boolean);
-    if (lines.length === 0) return;
-
-    const question = lines[0].trim();
-    const choices = [];
-
-    lines.slice(1).forEach(line => {
-      const match = line.match(/^([A-Da-d])[.)]\s*(.+)/);
-      if (match) {
-        choices.push({ letter: match[1].toUpperCase(), text: match[2].trim() });
-      }
-    });
-
-    if (question.length > 2) {
-      questions.push({ question, choices });
-    }
-  });
-
-  return questions;
-}
-
-function showRawFallback(text) {
-  resultsContent.innerHTML = `
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px;">
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">AI Response</div>
-      <div style="font-family:var(--mono);font-size:12px;line-height:1.7;color:var(--text);white-space:pre-wrap;">${escHtml(text)}</div>
-    </div>
-  `;
-}
-
-function showError(msg) {
-  resultsContent.innerHTML = `<div class="error-card">⚠️ ${escHtml(msg)}</div>`;
-}
-
-function escHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-</script>
+      <div class="footer-bottom">
+        <p>&copy; 2025 babytime. All rights reserved. This site does not host any copyrighted content.</p>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Mobile overlay -->
+  <div class="overlay" id="overlay"></div>
+
+  <script src="/data.js"></script>
+  <script src="/script.js"></script>
 </body>
 </html>
