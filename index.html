@@ -209,6 +209,22 @@
   <!-- Mobile overlay -->
   <div class="overlay" id="overlay"></div>
 
+  <!-- Video Player Modal -->
+  <div class="player-modal" id="playerModal" aria-label="Video player">
+    <div class="player-overlay" id="playerOverlay"></div>
+    <div class="player-container">
+      <div class="player-header">
+        <h3 class="player-title" id="playerTitle">Now Playing</h3>
+        <button class="player-close" id="playerClose" aria-label="Close player">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="player-wrapper" id="playerWrapper">
+        <iframe id="playerFrame" src="" allowfullscreen allow="autoplay; fullscreen" frameborder="0"></iframe>
+      </div>
+    </div>
+  </div>
+
   <script src="/data.js"></script>
   <script src="/script.js"></script>
 </body>
