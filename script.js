@@ -60,26 +60,68 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// ===== PLAYER =====
+// ===== PLAYER - AD-FREE =====
 function initPlayer() {
   const modal = document.getElementById('playerModal');
   const overlay = document.getElementById('playerOverlay');
   const close = document.getElementById('playerClose');
   const frame = document.getElementById('playerFrame');
   const titleEl = document.getElementById('playerTitle');
+  const wrapper = document.getElementById('playerWrapper');
+  const statusEl = document.getElementById('playerStatus');
+
+  let currentSourceIndex = 0;
+  let embeds = [];
 
   function openPlayer(movieId, title, type) {
-    const embedUrl = getEmbedUrl(movieId, type);
-    titleEl.textContent = 'Now Playing: ' + title;
-    frame.src = embedUrl;
+    currentSourceIndex = 0;
+    embeds = getEmbedUrl(movieId, type);
+    
+    titleEl.textContent = '▶ ' + title;
     modal.classList.add('open');
     document.body.style.overflow = 'hidden';
+    
+    loadSource(0);
+  }
+
+  function loadSource(index) {
+    if (index >= embeds.length) {
+      showMessage('⚠ Could not load video from any source.');
+      return;
+    }
+    
+    const embed = embeds[index];
+    currentSourceIndex = index;
+    
+    showMessage('Loading ' + embed.name + '...');
+    
+    // Sandbox the iframe - NO allow-popups, NO allow-top-navigation
+    frame.sandbox = embed.sandbox || 'allow-scripts allow-same-origin allow-forms allow-fullscreen';
+    frame.src = embed.url;
+    
+    // Hide status after load attempt
+    setTimeout(() => {
+      if (statusEl) statusEl.style.display = 'none';
+    }, 3000);
+  }
+
+  function showMessage(msg) {
+    if (statusEl) {
+      statusEl.textContent = msg;
+      statusEl.style.display = 'block';
+    }
+  }
+
+  function retryNext() {
+    // User clicked "retry" - try next source
+    loadSource(currentSourceIndex + 1);
   }
 
   function closePlayer() {
     modal.classList.remove('open');
     frame.src = '';
     document.body.style.overflow = '';
+    if (statusEl) statusEl.style.display = 'none';
   }
 
   close.addEventListener('click', closePlayer);
@@ -91,6 +133,7 @@ function initPlayer() {
 
   // Expose for use in click handlers
   window.openPlayer = openPlayer;
+  window.retryPlayer = retryNext;
 }
 
 // ===== RENDER GRID =====
@@ -151,7 +194,7 @@ function renderContinueWatching(gridId, items) {
   `).join('');
 }
 
-// ===== SIDEBAR TOGGLE =====
+// ===== SIDEBAR =====
 function initSidebar() {
   const menuToggle = document.getElementById('menuToggle');
   const sidebar = document.querySelector('.sidebar');
@@ -278,7 +321,7 @@ function initNavigation() {
   });
 }
 
-// ===== CLICK HANDLERS (Play button + Movie cards) =====
+// ===== CLICK HANDLERS =====
 document.addEventListener('click', (e) => {
   const playBtn = e.target.closest('.play-btn');
   const movieCard = e.target.closest('.movie-card');
