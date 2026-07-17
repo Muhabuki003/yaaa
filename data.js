@@ -1,11 +1,41 @@
-// Movie data for babytime - powered by TMDB + vidsrc.to
+// babytime - ad-free embed player
+// Multiple clean embed sources with fallbacks
+
+const EMBED_SOURCES = [
+  // Primary: vidsrc.to (most reliable)
+  {
+    name: 'vidsrc',
+    url: (id, type) => type === 'TV' 
+      ? `https://vidsrc.to/embed/tv/${id}/1/1` 
+      : `https://vidsrc.to/embed/movie/${id}`,
+    sandbox: 'allow-scripts allow-same-origin allow-forms allow-fullscreen'
+  },
+  // Fallback: embed.su
+  {
+    name: 'embed',
+    url: (id, type) => type === 'TV'
+      ? `https://embed.su/embed/tv/${id}/1/1`
+      : `https://embed.su/embed/movie/${id}`,
+    sandbox: 'allow-scripts allow-same-origin allow-forms allow-fullscreen'
+  }
+];
+
+function getEmbedUrl(movieId, type) {
+  return EMBED_SOURCES.map(s => ({
+    url: s.url(movieId, type),
+    sandbox: s.sandbox,
+    name: s.name
+  }));
+}
+
+// Movie data for babytime - powered by TMDB
 const MOVIE_DATA = {
   trending: [
     { id: "505642", title: "Black Panther: Wakanda Forever", year: 2022, rating: 7.3, duration: "2h 41m", type: "Movie", genres: ["Action", "Adventure", "Drama"], poster: "https://image.tmdb.org/t/p/w500/sv1xJUazXeYqALzczSZ3O6nkH75.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/nJLdjfpPBCuax6eA8WRx7SoYS21.jpg", desc: "Queen Ramonda, Shuri, M'Baku, Okoye and the Dora Milaje fight to protect their nation from intervening world powers in the wake of King T'Challa's death." },
     { id: "736526", title: "Spider-Man: No Way Home", year: 2021, rating: 8.0, duration: "2h 28m", type: "Movie", genres: ["Action", "Adventure", "Sci-Fi"], poster: "https://image.tmdb.org/t/p/w500/uJYYizSuA9Y3DCs0qS4qWvHfZg4.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/iQFcwSGbZXMkeyKrxbPnwnRo5fl.jpg", desc: "Peter Parker is unmasked and no longer able to separate his normal life from the high-stakes world of a superhero." },
     { id: "76600", title: "Avatar: The Way of Water", year: 2022, rating: 7.7, duration: "3h 12m", type: "Movie", genres: ["Sci-Fi", "Adventure", "Action"], poster: "https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/ovMgrPdN6sT3gU24gWNjG8sNNI1.jpg", desc: "Jake Sully lives with his newfound family formed on the extrasolar moon Pandora." },
     { id: "299534", title: "Avengers: Endgame", year: 2019, rating: 8.3, duration: "3h 1m", type: "Movie", genres: ["Adventure", "Sci-Fi", "Action"], poster: "https://image.tmdb.org/t/p/w500/or06FN3Dka5tukK1e9sl16pB3iy.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/7RyHsO4Q5E7jSpzLe8aA8d48T1c.jpg", desc: "After the devastating events of Avengers: Infinity War, the universe is in ruins." },
-    { id: "634649", title: "Spider-Man: Across the Spider-Verse", year: 2023, rating: 8.4, duration: "2h 20m", type: "Movie", genres: ["Animation", "Action", "Adventure"], poster: "https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/nGxUxi3PfXDRmS3qq6WrYl5kGiC.jpg", desc: "Miles Morales catapults across the Multiverse, where he encounters a team of Spider-People." },
+    { id: "634649", title: "Spider-Man: Across the Spider-Verse", year: 2023, rating: 8.4, duration: "2h 20m", type: "Movie", genres: ["Animation", "Action", "Adventure"], poster: "https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/nGxUxi3PfXDRmS3qq6WrYl5kGiC.jpg", desc: "Miles Morales catapults across the Multiverse." },
     { id: "27205", title: "Inception", year: 2010, rating: 8.4, duration: "2h 28m", type: "Movie", genres: ["Action", "Sci-Fi", "Thriller"], poster: "https://image.tmdb.org/t/p/w500/edv5CZvWj09upOsy2Y6IwDhK8bt.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/8ZTVqvKDQ8emSGUEMjsS4yHAwrp.jpg", desc: "Cobb, a skilled thief who commits corporate espionage by infiltrating the subconscious of his targets." },
     { id: "550", title: "Fight Club", year: 1999, rating: 8.4, duration: "2h 19m", type: "Movie", genres: ["Drama"], poster: "https://image.tmdb.org/t/p/w500/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/hZkgoQYus5dXo3H8T7Uef6DNknx.jpg", desc: "A ticking-Loss, disillusioned insurance company employee finds outlet for his frustrations." },
     { id: "680", title: "Pulp Fiction", year: 1994, rating: 8.5, duration: "2h 34m", type: "Movie", genres: ["Thriller", "Crime"], poster: "https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/suaEOtk1N1sgg2MTM7oZd2cfVp3.jpg", desc: "The lives of two mob hitmen, a boxer, a gangster and his wife intertwine." },
@@ -37,12 +67,3 @@ const MOVIE_DATA = {
     { id: "736526", title: "Spider-Man: No Way Home", progress: 88, year: 2021, rating: 8.0, type: "Movie", poster: "https://image.tmdb.org/t/p/w500/uJYYizSuA9Y3DCs0qS4qWvHfZg4.jpg" },
   ]
 };
-
-// Embed helper - returns the video source URL
-function getEmbedUrl(movieId, type) {
-  // Use vidsrc.to as primary source
-  if (type === 'TV') {
-    return `https://vidsrc.to/embed/tv/${movieId}/1/1`;
-  }
-  return `https://vidsrc.to/embed/movie/${movieId}`;
-}
