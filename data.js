@@ -1,43 +1,48 @@
-// Movie data for babytime
+// Movie data for babytime - powered by TMDB + vidsrc.to
 const MOVIE_DATA = {
   trending: [
-    { id: 1, title: "The Last Frontier", year: 2025, rating: 8.5, duration: "2h 12m", quality: "HD", type: "Movie", genres: ["Action", "Adventure", "Drama"], emoji: "🏔️", color: "#1a0533", desc: "In a world ravaged by climate collapse, one family must journey across the frozen wasteland to find the last habitable zone on Earth." },
-    { id: 2, title: "Neon Dreams", year: 2025, rating: 7.9, duration: "1h 48m", quality: "4K", type: "Movie", genres: ["Sci-Fi", "Thriller"], emoji: "🌃", color: "#0d0221" },
-    { id: 3, title: "The Silent Hour", year: 2024, rating: 8.2, duration: "2h 05m", quality: "HD", type: "Movie", genres: ["Horror", "Mystery"], emoji: "🕯️", color: "#1a0505" },
-    { id: 4, title: "Velocity", year: 2025, rating: 7.5, duration: "1h 55m", quality: "4K", type: "Movie", genres: ["Action", "Thriller"], emoji: "🏎️", color: "#0d1a2d" },
-    { id: 5, title: "Wild Hearts", year: 2024, rating: 8.0, duration: "2h 18m", quality: "HD", type: "Movie", genres: ["Romance", "Drama"], emoji: "💕", color: "#1a0d1a" },
-    { id: 6, title: "Shadow Protocol", year: 2025, rating: 8.8, duration: "2h 22m", quality: "4K", type: "Movie", genres: ["Action", "Spy", "Thriller"], emoji: "🕴️", color: "#050d1a" },
-    { id: 7, title: "Midnight Garden", year: 2024, rating: 7.6, duration: "1h 42m", quality: "HD", type: "Movie", genres: ["Fantasy", "Animation"], emoji: "🌙", color: "#0a0a1a" },
-    { id: 8, title: "Crimson Tide Rising", year: 2025, rating: 8.3, duration: "2h 08m", quality: "HD", type: "Movie", genres: ["War", "Drama"], emoji: "⚓", color: "#1a0d05" },
+    { id: "505642", title: "Black Panther: Wakanda Forever", year: 2022, rating: 7.3, duration: "2h 41m", type: "Movie", genres: ["Action", "Adventure", "Drama"], poster: "https://image.tmdb.org/t/p/w500/sv1xJUazXeYqALzczSZ3O6nkH75.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/nJLdjfpPBCuax6eA8WRx7SoYS21.jpg", desc: "Queen Ramonda, Shuri, M'Baku, Okoye and the Dora Milaje fight to protect their nation from intervening world powers in the wake of King T'Challa's death." },
+    { id: "736526", title: "Spider-Man: No Way Home", year: 2021, rating: 8.0, duration: "2h 28m", type: "Movie", genres: ["Action", "Adventure", "Sci-Fi"], poster: "https://image.tmdb.org/t/p/w500/uJYYizSuA9Y3DCs0qS4qWvHfZg4.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/iQFcwSGbZXMkeyKrxbPnwnRo5fl.jpg", desc: "Peter Parker is unmasked and no longer able to separate his normal life from the high-stakes world of a superhero." },
+    { id: "76600", title: "Avatar: The Way of Water", year: 2022, rating: 7.7, duration: "3h 12m", type: "Movie", genres: ["Sci-Fi", "Adventure", "Action"], poster: "https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/ovMgrPdN6sT3gU24gWNjG8sNNI1.jpg", desc: "Jake Sully lives with his newfound family formed on the extrasolar moon Pandora." },
+    { id: "299534", title: "Avengers: Endgame", year: 2019, rating: 8.3, duration: "3h 1m", type: "Movie", genres: ["Adventure", "Sci-Fi", "Action"], poster: "https://image.tmdb.org/t/p/w500/or06FN3Dka5tukK1e9sl16pB3iy.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/7RyHsO4Q5E7jSpzLe8aA8d48T1c.jpg", desc: "After the devastating events of Avengers: Infinity War, the universe is in ruins." },
+    { id: "634649", title: "Spider-Man: Across the Spider-Verse", year: 2023, rating: 8.4, duration: "2h 20m", type: "Movie", genres: ["Animation", "Action", "Adventure"], poster: "https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/nGxUxi3PfXDRmS3qq6WrYl5kGiC.jpg", desc: "Miles Morales catapults across the Multiverse, where he encounters a team of Spider-People." },
+    { id: "27205", title: "Inception", year: 2010, rating: 8.4, duration: "2h 28m", type: "Movie", genres: ["Action", "Sci-Fi", "Thriller"], poster: "https://image.tmdb.org/t/p/w500/edv5CZvWj09upOsy2Y6IwDhK8bt.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/8ZTVqvKDQ8emSGUEMjsS4yHAwrp.jpg", desc: "Cobb, a skilled thief who commits corporate espionage by infiltrating the subconscious of his targets." },
+    { id: "550", title: "Fight Club", year: 1999, rating: 8.4, duration: "2h 19m", type: "Movie", genres: ["Drama"], poster: "https://image.tmdb.org/t/p/w500/pB8BM7pdSp6B6Ih7QZ4DrQ3PmJK.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/hZkgoQYus5dXo3H8T7Uef6DNknx.jpg", desc: "A ticking-Loss, disillusioned insurance company employee finds outlet for his frustrations." },
+    { id: "680", title: "Pulp Fiction", year: 1994, rating: 8.5, duration: "2h 34m", type: "Movie", genres: ["Thriller", "Crime"], poster: "https://image.tmdb.org/t/p/w500/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/suaEOtk1N1sgg2MTM7oZd2cfVp3.jpg", desc: "The lives of two mob hitmen, a boxer, a gangster and his wife intertwine." },
   ],
   movies: [
-    { id: 10, title: "Starfall", year: 2025, rating: 8.1, duration: "2h 15m", quality: "4K", type: "Movie", genres: ["Sci-Fi", "Adventure"], emoji: "⭐", color: "#050d1a" },
-    { id: 11, title: "The Lost Kingdom", year: 2024, rating: 7.8, duration: "2h 20m", quality: "HD", type: "Movie", genres: ["Fantasy", "Adventure"], emoji: "🏰", color: "#0d1a0d" },
-    { id: 12, title: "Night Watch", year: 2025, rating: 7.4, duration: "1h 50m", quality: "HD", type: "Movie", genres: ["Crime", "Thriller"], emoji: "🔦", color: "#050505" },
-    { id: 13, title: "Echo Valley", year: 2024, rating: 8.0, duration: "1h 58m", quality: "HD", type: "Movie", genres: ["Mystery", "Drama"], emoji: "🏞️", color: "#0a1a0a" },
-    { id: 14, title: "Firestorm", year: 2025, rating: 7.2, duration: "2h 05m", quality: "4K", type: "Movie", genres: ["Action", "Disaster"], emoji: "🔥", color: "#1a0a00" },
-    { id: 15, title: "Dancing in the Rain", year: 2024, rating: 8.4, duration: "1h 45m", quality: "HD", type: "Movie", genres: ["Musical", "Romance"], emoji: "💃", color: "#0d0d1a" },
-    { id: 16, title: "The Watcher", year: 2025, rating: 7.9, duration: "1h 52m", quality: "HD", type: "Movie", genres: ["Horror", "Thriller"], emoji: "👁️", color: "#050505" },
-    { id: 17, title: "Golden Hour", year: 2024, rating: 8.6, duration: "2h 10m", quality: "4K", type: "Movie", genres: ["Drama", "Biography"], emoji: "🌅", color: "#1a0d05" },
-    { id: 18, title: "Beyond the Veil", year: 2025, rating: 7.7, duration: "2h 00m", quality: "HD", type: "Movie", genres: ["Supernatural", "Horror"], emoji: "👻", color: "#0a0515" },
-    { id: 19, title: "Circuit Break", year: 2024, rating: 7.3, duration: "1h 38m", quality: "HD", type: "Movie", genres: ["Action", "Tech"], emoji: "⚡", color: "#050d1a" },
-    { id: 20, title: "The Chef's Table", year: 2025, rating: 8.0, duration: "1h 55m", quality: "4K", type: "Movie", genres: ["Comedy", "Drama"], emoji: "🍳", color: "#0d0d05" },
-    { id: 21, title: "Frozen Depths", year: 2024, rating: 8.1, duration: "2h 15m", quality: "HD", type: "Movie", genres: ["Adventure", "Survival"], emoji: "❄️", color: "#050d1a" },
+    { id: "335787", title: "John Wick: Chapter 4", year: 2023, rating: 7.8, duration: "2h 49m", type: "Movie", genres: ["Action", "Thriller", "Crime"], poster: "https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5UHaz0I.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/3V4kLQg0kSqPLct3GaiUJwBzL5a.jpg", desc: "John Wick uncovers a path to defeating The High Table." },
+    { id: "667538", title: "Transformers: Rise of the Beasts", year: 2023, rating: 7.5, duration: "2h 7m", type: "Movie", genres: ["Action", "Adventure", "Sci-Fi"], poster: "https://image.tmdb.org/t/p/w500/gPbM0MK8N8V3WvCJ9V3GvS1A9B.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/qi9sa5A8JNz2oMx2Pq2U4TmzLr.jpg", desc: "When a new threat capable of destroying the entire planet emerges, Optimus Prime and the Autobots must ally." },
+    { id: "569094", title: "Spider-Man: Across the Spider-Verse", year: 2023, rating: 8.4, duration: "2h 20m", type: "Movie", genres: ["Animation", "Action", "Adventure"], poster: "https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/nGxUxi3PfXDRmS3qq6WrYl5kGiC.jpg", desc: "Miles Morales catapults across the Multiverse." },
+    { id: "315162", title: "Puss in Boots: The Last Wish", year: 2022, rating: 8.3, duration: "1h 42m", type: "Movie", genres: ["Animation", "Comedy", "Adventure"], poster: "https://image.tmdb.org/t/p/w500/kuf6dutpsT0vSVehic3EZIqkOBt.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/r9PkFnRUIthgBp2R6zWpK1N6Ua.jpg", desc: "Puss in Boots discovers that his passion for adventure has taken its toll." },
+    { id: "502356", title: "The Super Mario Bros. Movie", year: 2023, rating: 7.8, duration: "1h 32m", type: "Movie", genres: ["Animation", "Comedy", "Adventure"], poster: "https://image.tmdb.org/t/p/w500/qNBAXBIQlnOThrVvA6mA2K5kkC.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/9n2tJBplPbgR2caH4a3SFfVQch.jpg", desc: "While working underground to fix a water main, Brooklyn plumbers Mario and Luigi are transported." },
+    { id: "615656", title: "Meg 2: The Trench", year: 2023, rating: 7.0, duration: "1h 56m", type: "Movie", genres: ["Action", "Sci-Fi", "Horror"], poster: "https://image.tmdb.org/t/p/w500/4m1Au3YkjqsxF8iwQy0fPYSxE0h.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/fmIp40ev4VGquKAB7m0Lnn4Z9i.jpg", desc: "An exploratory dive into the deepest depths of the ocean." },
+    { id: "677179", title: "Creed III", year: 2023, rating: 7.3, duration: "1h 56m", type: "Movie", genres: ["Drama", "Action"], poster: "https://image.tmdb.org/t/p/w500/c3WmrrPBxwE7MSqO2CwA9o7Ycm.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/2pFJYFqYLhRVI4HMSJqFyR0QNk.jpg", desc: "After dominating the boxing world, Adonis Creed has been thriving in both his career and family life." },
+    { id: "945961", title: "The Equalizer 3", year: 2023, rating: 7.4, duration: "1h 49m", type: "Movie", genres: ["Action", "Thriller", "Crime"], poster: "https://image.tmdb.org/t/p/w500/b0Ej6fnXAP8lK1hLP7J9m9GZYR.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/h0nA6DJLFGkgmMq4RkdUP6E4Lz.jpg", desc: "Robert McCall finds himself at home in Southern Italy." },
   ],
   tvShows: [
-    { id: 30, title: "Crystal Empire", year: 2025, rating: 8.9, duration: "3 Seasons", quality: "4K", type: "TV", genres: ["Fantasy", "Drama"], emoji: "💎", color: "#0d051a" },
-    { id: 31, title: "Dark Horizons", year: 2024, rating: 8.5, duration: "2 Seasons", quality: "HD", type: "TV", genres: ["Sci-Fi", "Thriller"], emoji: "🌌", color: "#05050d" },
-    { id: 32, title: "Brooklyn Blue", year: 2025, rating: 7.8, duration: "1 Season", quality: "HD", type: "TV", genres: ["Crime", "Drama"], emoji: "🚔", color: "#0a0d1a" },
-    { id: 33, title: "Laugh Factory", year: 2024, rating: 7.6, duration: "4 Seasons", quality: "HD", type: "TV", genres: ["Comedy"], emoji: "😂", color: "#0d0d05" },
-    { id: 34, title: "The Summit", year: 2025, rating: 8.7, duration: "2 Seasons", quality: "4K", type: "TV", genres: ["Drama", "Adventure"], emoji: "⛰️", color: "#0a1a05" },
-    { id: 35, title: "Ghost Stories", year: 2024, rating: 8.2, duration: "3 Seasons", quality: "HD", type: "TV", genres: ["Horror", "Anthology"], emoji: "👻", color: "#05050d" },
-    { id: 36, title: "Speedway", year: 2025, rating: 7.4, duration: "1 Season", quality: "HD", type: "TV", genres: ["Sports", "Drama"], emoji: "🏁", color: "#0d0d0d" },
-    { id: 37, title: "Love in Paris", year: 2024, rating: 8.0, duration: "2 Seasons", quality: "4K", type: "TV", genres: ["Romance"], emoji: "❤️", color: "#1a050d" },
+    { id: "94997", title: "House of the Dragon", year: 2022, rating: 8.4, duration: "2 Seasons", type: "TV", genres: ["Sci-Fi & Fantasy", "Drama", "Action"], poster: "https://image.tmdb.org/t/p/w500/1Qp9FTw3T7WjFnBsXGJfYrMjGv.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/7v4KXj7NpHbUHRhT6f5wVJc5Nc.jpg", desc: "The story of the House Targaryen set 200 years before the events of Game of Thrones." },
+    { id: "100088", title: "The Last of Us", year: 2023, rating: 8.8, duration: "1 Season", type: "TV", genres: ["Drama", "Action", "Adventure"], poster: "https://image.tmdb.org/t/p/w500/uKvVjHNqB1VmEe5cM1p3Xm3B9z.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/uDsvh7jM1JpRm7q6Y8M9G8f6bN.jpg", desc: "Twenty years after modern civilization has been destroyed." },
+    { id: "1396", title: "Breaking Bad", year: 2008, rating: 8.9, duration: "5 Seasons", type: "TV", genres: ["Drama", "Crime", "Thriller"], poster: "https://image.tmdb.org/t/p/w500/ggFHVNu6YYI5L3pGjT6eWZ8i8L.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/tsRy63Mu5cu8etq1oNKMYp96bK.jpg", desc: "A high school chemistry teacher diagnosed with inoperable lung cancer turns to manufacturing and selling methamphetamine." },
+    { id: "1668", title: "Friends", year: 1994, rating: 8.4, duration: "10 Seasons", type: "TV", genres: ["Comedy"], poster: "https://image.tmdb.org/t/p/w500/2koX1xLkiT8P4zRlN6vN5bY1O9.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/7v4KXj7NpHbUHRhT6f5wVJc5Nc.jpg", desc: "Follows the personal and professional lives of six twenty to thirty-something-year-old friends." },
+    { id: "60625", title: "Rick and Morty", year: 2013, rating: 8.7, duration: "6 Seasons", type: "TV", genres: ["Animation", "Comedy", "Sci-Fi"], poster: "https://image.tmdb.org/t/p/w500/cvhmu9nYmF2j7Gx5Tj3eK2bM2e.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/aoAQS4E3Lh6n7B7n4n5pK3n5kL.jpg", desc: "An animated series that follows the exploits of a super scientist and his not-so-bright grandson." },
+    { id: "1416", title: "Grey's Anatomy", year: 2005, rating: 8.2, duration: "19 Seasons", type: "TV", genres: ["Drama"], poster: "https://image.tmdb.org/t/p/w500/jnsvc7g0VbP7R7V7V4jK7c5l7L.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/aoAQS4E3Lh6n7B7n4n5pK3n5kL.jpg", desc: "A drama centered on the personal and professional lives of surgical interns." },
+    { id: "37854", title: "One Piece", year: 1999, rating: 8.7, duration: "20 Seasons", type: "TV", genres: ["Animation", "Action", "Comedy"], poster: "https://image.tmdb.org/t/p/w500/3iV4j7c7G7c7j7F7i7c7j7F7i7c.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/7v4KXj7NpHbUHRhT6f5wVJc5Nc.jpg", desc: "Follows the adventures of Monkey D. Luffy and his pirate crew." },
+    { id: "1429", title: "Attack on Titan", year: 2013, rating: 8.6, duration: "4 Seasons", type: "TV", genres: ["Animation", "Action", "Drama"], poster: "https://image.tmdb.org/t/p/w500/hb1p1v4j7c7G7c7j7F7i7c7j7F7i.jpg", backdrop: "https://image.tmdb.org/t/p/w1280/aoAQS4E3Lh6n7B7n4n5pK3n5kL.jpg", desc: "In a world where humanity lives inside cities surrounded by enormous walls." },
   ],
   continueWatching: [
-    { id: 40, title: "Starfall", progress: 45, year: 2025, rating: 8.1, type: "Movie", emoji: "⭐", color: "#050d1a" },
-    { id: 41, title: "Crystal Empire", progress: 72, year: 2025, rating: 8.9, type: "TV S1:E8", emoji: "💎", color: "#0d051a" },
-    { id: 42, title: "Dark Horizons", progress: 30, year: 2024, rating: 8.5, type: "TV S2:E4", emoji: "🌌", color: "#05050d" },
-    { id: 43, title: "Echo Valley", progress: 88, year: 2024, rating: 8.0, type: "Movie", emoji: "🏞️", color: "#0a1a0a" },
+    { id: "505642", title: "Black Panther: Wakanda Forever", progress: 45, year: 2022, rating: 7.3, type: "Movie", poster: "https://image.tmdb.org/t/p/w500/sv1xJUazXeYqALzczSZ3O6nkH75.jpg" },
+    { id: "94997", title: "House of the Dragon", progress: 72, year: 2022, rating: 8.4, type: "TV S1:E5", poster: "https://image.tmdb.org/t/p/w500/1Qp9FTw3T7WjFnBsXGJfYrMjGv.jpg" },
+    { id: "100088", title: "The Last of Us", progress: 30, year: 2023, rating: 8.8, type: "TV S1:E3", poster: "https://image.tmdb.org/t/p/w500/uKvVjHNqB1VmEe5cM1p3Xm3B9z.jpg" },
+    { id: "736526", title: "Spider-Man: No Way Home", progress: 88, year: 2021, rating: 8.0, type: "Movie", poster: "https://image.tmdb.org/t/p/w500/uJYYizSuA9Y3DCs0qS4qWvHfZg4.jpg" },
   ]
 };
+
+// Embed helper - returns the video source URL
+function getEmbedUrl(movieId, type) {
+  // Use vidsrc.to as primary source
+  if (type === 'TV') {
+    return `https://vidsrc.to/embed/tv/${movieId}/1/1`;
+  }
+  return `https://vidsrc.to/embed/movie/${movieId}`;
+}
