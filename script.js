@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initSidebar();
   initSearch();
   initNavigation();
+  initPlayer();
 });
 
 // ===== HERO =====
@@ -21,19 +22,17 @@ function initHero() {
   const tags = document.getElementById('heroTags');
   tags.innerHTML = featured.genres.map(g => `<span>${g}</span>`).join('');
   
+  // Real backdrop image
   const backdrop = document.getElementById('heroBackdrop');
-  backdrop.style.background = `linear-gradient(135deg, ${featured.color} 0%, #0a0a1a 50%, #0d0d1a 100%)`;
+  backdrop.innerHTML = `<img class="hero-backdrop-img" src="${featured.backdrop}" alt="${featured.title}" loading="eager" onerror="this.style.display='none'">`;
+  backdrop.style.background = 'none';
   
-  // Add subtle particle effect
   createParticles();
 }
 
 function createParticles() {
-  const hero = document.querySelector('.hero');
   const backdrop = document.getElementById('heroBackdrop');
-  
-  // Small floating dots
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 15; i++) {
     const dot = document.createElement('div');
     dot.style.cssText = `
       position: absolute;
@@ -45,12 +44,12 @@ function createParticles() {
       left: ${Math.random() * 100}%;
       animation: float ${Math.random() * 6 + 4}s ease-in-out infinite;
       animation-delay: ${Math.random() * 2}s;
+      z-index: 1;
     `;
     backdrop.appendChild(dot);
   }
 }
 
-// Add float keyframes
 const style = document.createElement('style');
 style.textContent = `
   @keyframes float {
@@ -61,17 +60,50 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
+// ===== PLAYER =====
+function initPlayer() {
+  const modal = document.getElementById('playerModal');
+  const overlay = document.getElementById('playerOverlay');
+  const close = document.getElementById('playerClose');
+  const frame = document.getElementById('playerFrame');
+  const titleEl = document.getElementById('playerTitle');
+
+  function openPlayer(movieId, title, type) {
+    const embedUrl = getEmbedUrl(movieId, type);
+    titleEl.textContent = 'Now Playing: ' + title;
+    frame.src = embedUrl;
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closePlayer() {
+    modal.classList.remove('open');
+    frame.src = '';
+    document.body.style.overflow = '';
+  }
+
+  close.addEventListener('click', closePlayer);
+  overlay.addEventListener('click', closePlayer);
+  
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closePlayer();
+  });
+
+  // Expose for use in click handlers
+  window.openPlayer = openPlayer;
+}
+
 // ===== RENDER GRID =====
 function renderGrid(gridId, items) {
   const grid = document.getElementById(gridId);
   if (!grid) return;
   
-  grid.innerHTML = items.map(item => `
-    <div class="movie-card" data-id="${item.id}" tabindex="0" role="button" aria-label="${item.title}">
+  grid.innerHTML = items.map(item => {
+    const posterSrc = item.poster || '';
+    return `
+    <div class="movie-card" data-id="${item.id}" data-type="${item.type}" data-title="${item.title.replace(/"/g,'&quot;')}" tabindex="0" role="button" aria-label="Play ${item.title}">
       <div class="movie-card-poster">
-        <div class="poster-placeholder" style="background: linear-gradient(135deg, ${item.color || '#1a1a25'}, var(--bg-card));">
-          ${item.emoji || '🎬'}
-        </div>
+        ${posterSrc ? `<img src="${posterSrc}" alt="${item.title}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'poster-placeholder\\'>🎬</div>'">` : `<div class="poster-placeholder">🎬</div>`}
         <div class="movie-card-overlay">
           <div class="play-icon">
             <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -79,15 +111,15 @@ function renderGrid(gridId, items) {
         </div>
       </div>
       <div class="movie-card-info">
-        <div class="movie-card-title">${item.title}</div>
+        <div class="movie-card-title" title="${item.title}">${item.title}</div>
         <div class="movie-card-meta">
           <span>${item.year}</span>
           <span class="movie-card-rating">★ ${item.rating}</span>
           <span class="movie-card-type">${item.type || 'Movie'}</span>
         </div>
       </div>
-    </div>
-  `).join('');
+    </div>`
+  }).join('');
 }
 
 // ===== RENDER CONTINUE WATCHING =====
@@ -96,11 +128,9 @@ function renderContinueWatching(gridId, items) {
   if (!grid) return;
   
   grid.innerHTML = items.map(item => `
-    <div class="movie-card continue-card" data-id="${item.id}" tabindex="0" role="button" aria-label="${item.title}">
-      <div class="movie-card-poster" style="background: linear-gradient(135deg, ${item.color || '#1a1a25'}, var(--bg-card));">
-        <div class="poster-placeholder" style="font-size: 36px;">
-          ${item.emoji || '🎬'}
-        </div>
+    <div class="movie-card continue-card" data-id="${item.id}" data-type="${item.type}" data-title="${item.title.replace(/"/g,'&quot;')}" tabindex="0" role="button" aria-label="Continue ${item.title}">
+      <div class="movie-card-poster">
+        ${item.poster ? `<img src="${item.poster}" alt="${item.title}" loading="lazy" onerror="this.parentElement.innerHTML='<div class=\\'poster-placeholder\\'>🎬</div>'">` : `<div class="poster-placeholder" style="font-size:36px;">🎬</div>`}
         <div class="movie-card-overlay">
           <div class="play-icon">
             <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -141,7 +171,6 @@ function initSidebar() {
     document.body.style.overflow = '';
   });
   
-  // Close sidebar on nav click on mobile
   sidebar.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => {
       if (window.innerWidth <= 768) {
@@ -164,68 +193,49 @@ function initSearch() {
   
   searchToggle.addEventListener('click', () => {
     searchBar.classList.toggle('open');
-    if (searchBar.classList.contains('open')) {
-      searchInput.focus();
-    }
+    if (searchBar.classList.contains('open')) searchInput.focus();
   });
   
   searchClose.addEventListener('click', () => {
     searchBar.classList.remove('open');
     searchInput.value = '';
+    clearSearch();
   });
   
-  // Ctrl+K / Cmd+K shortcut
   document.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
       e.preventDefault();
       searchBar.classList.toggle('open');
-      if (searchBar.classList.contains('open')) {
-        searchInput.focus();
-      }
+      if (searchBar.classList.contains('open')) searchInput.focus();
     }
   });
   
-  // Real-time search across all movies
   searchInput.addEventListener('input', (e) => {
     const query = e.target.value.toLowerCase().trim();
     const allMovies = [...MOVIE_DATA.trending, ...MOVIE_DATA.movies, ...MOVIE_DATA.tvShows];
     
     document.querySelectorAll('.content-section').forEach(section => {
-      const grid = section.querySelector('.movie-grid');
-      if (!grid) return;
-      
-      if (!query) {
-        section.style.display = '';
-        return;
-      }
-      
-      // Show sections that have matching items
-      const sectionTitle = section.querySelector('.section-title')?.textContent?.toLowerCase() || '';
-      const isResults = section.classList.contains('search-results');
-      
-      if (!isResults) {
-        section.style.display = 'none';
+      if (!section.classList.contains('search-results')) {
+        section.style.display = query ? 'none' : '';
       }
     });
     
     if (!query) {
-      document.querySelector('.content-sections').style.display = '';
-      const results = document.querySelector('.search-results');
-      if (results) results.remove();
+      clearSearch();
       return;
     }
     
-    const results = allMovies.filter(m => 
+    const results = allMovies.filter(m =>
       m.title.toLowerCase().includes(query) ||
-      m.genres?.some(g => g.toLowerCase().includes(query))
+      m.genres?.some(g => g.toLowerCase().includes(query)) ||
+      String(m.year).includes(query)
     );
     
-    // Replace or create search results section
     let resultsSection = document.querySelector('.search-results');
     if (!resultsSection) {
       resultsSection = document.createElement('section');
       resultsSection.className = 'content-section search-results';
-      resultsSection.innerHTML = `<div class="section-header"><h2 class="section-title">Search Results</h2></div><div class="movie-grid" id="searchGrid"></div>`;
+      resultsSection.innerHTML = '<div class="section-header"><h2 class="section-title">Search Results</h2></div><div class="movie-grid" id="searchGrid"></div>';
       document.querySelector('.content-sections').prepend(resultsSection);
     }
     
@@ -241,6 +251,12 @@ function initSearch() {
   });
 }
 
+function clearSearch() {
+  document.querySelector('.content-sections').style.display = '';
+  const results = document.querySelector('.search-results');
+  if (results) results.remove();
+}
+
 // ===== NAVIGATION =====
 function initNavigation() {
   document.querySelectorAll('.nav-item[data-nav]').forEach(item => {
@@ -248,20 +264,9 @@ function initNavigation() {
       e.preventDefault();
       document.querySelectorAll('.nav-item[data-nav]').forEach(n => n.classList.remove('active'));
       item.classList.add('active');
-      
-      // Scroll to corresponding section
-      const nav = item.dataset.nav;
-      const sections = {
-        home: null,
-        movies: document.querySelector('.content-sections'),
-        tv: document.querySelector('.content-sections'),
-        trending: document.querySelector('.content-sections'),
-      };
-      
-      // Simple scroll to top for "home"
       window.scrollTo({ top: 0, behavior: 'smooth' });
       
-      // Highlight section
+      const nav = item.dataset.nav;
       if (nav === 'movies') {
         document.querySelector('.content-section:nth-child(2)')?.scrollIntoView({ behavior: 'smooth' });
       } else if (nav === 'tv') {
@@ -273,19 +278,21 @@ function initNavigation() {
   });
 }
 
-// ===== WATCH BUTTONS =====
+// ===== CLICK HANDLERS (Play button + Movie cards) =====
 document.addEventListener('click', (e) => {
   const playBtn = e.target.closest('.play-btn');
   const movieCard = e.target.closest('.movie-card');
   
   if (playBtn) {
-    // Simulate watching - show a toast-like notification
-    showNotification('🎬 Playing: ' + document.getElementById('heroTitle')?.textContent || 'Movie');
+    const featured = MOVIE_DATA.trending[0];
+    window.openPlayer(featured.id, featured.title, featured.type);
   }
   
   if (movieCard) {
-    const title = movieCard.querySelector('.movie-card-title')?.textContent || 'Content';
-    showNotification('▶️ Opening: ' + title);
+    const id = movieCard.dataset.id;
+    const title = movieCard.dataset.title;
+    const type = movieCard.dataset.type || 'Movie';
+    window.openPlayer(id, title, type);
   }
 });
 
@@ -308,7 +315,6 @@ function showNotification(message) {
   `;
   
   document.body.appendChild(toast);
-  
   setTimeout(() => {
     toast.style.opacity = '0';
     toast.style.transition = 'opacity 0.3s';
@@ -316,7 +322,6 @@ function showNotification(message) {
   }, 2500);
 }
 
-// Add slideIn animation
 const slideStyle = document.createElement('style');
 slideStyle.textContent = `
   @keyframes slideIn {
